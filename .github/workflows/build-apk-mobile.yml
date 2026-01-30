@@ -20,9 +20,6 @@ jobs:
       - name: Install Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Generate Gradle Wrapper
-        run: gradle wrapper
-
       - name: Build Release APK
         run: ./gradlew assembleRelease
 
