@@ -20,9 +20,6 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Gradle
-        uses: gradle/gradle-build-action@v3
-
       - name: Generate Android project (launcher)
         shell: bash
         run: |
@@ -59,19 +56,6 @@ jobs:
           include(":app")
           EOF
 
-          # Root build.gradle
-          cat > build.gradle <<'EOF'
-          plugins {
-              id 'com.android.application' version '8.2.2' apply false
-              id 'org.jetbrains.kotlin.android' version '1.9.22' apply false
-          }
-          EOF
-
-          # app/build.gradle
-          cat > app/build.gradle <<EOF
-          plugins {
-              id 'com.android.application'
-              id 'org.jetbrains.kotlin.android'
           }
 
           android {
