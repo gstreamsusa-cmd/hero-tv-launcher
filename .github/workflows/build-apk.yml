@@ -186,11 +186,8 @@ jobs:
           EOF
 
           # Gradle wrapper so ./gradlew works
-          gradle wrapper --gradle-version 8.6
-
-      - name: Build Debug APK
-        run: |
-          ./gradlew :app:assembleDebug
+          gradle wrapper --gradle-version 
+        
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
