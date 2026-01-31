@@ -2,11 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.gstreams.herotvlauncher">
 
-    <!-- Needed on Android 11+ to launch another app -->
-    <queries>
-        <package android:name="ar.tvplayer.tv" />
-    </queries>
-
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
