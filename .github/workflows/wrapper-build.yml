@@ -3,15 +3,12 @@ name: Wrapper + Build APK
 on:
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -26,29 +23,22 @@ jobs:
           unzip -q gradle.zip
           echo "$PWD/gradle-8.2.1/bin" >> $GITHUB_PATH
 
-      # 1) Generate Gradle wrapper files inside your repo
       - name: Generate Gradle Wrapper
-  run: |
-    pwd
-    ls -la
-    gradle -v
-    gradle wrapper --gradle-version 8.2.1 --no-daemon
+        run: |
+          gradle wrapper --gradle-version 8.2.1 --no-daemon
 
       - name: Make gradlew executable
-        run: chmod +x gradlew
+        run: chmod +x ./gradlew
 
-      # 2) Build APK using the wrapper we just generated
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: ./gradlew :app:assembleDebug
 
-      # 3) Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: HERO-TV-Launcher-APK
           path: app/build/outputs/apk/debug/app-debug.apk
 
-      # 4) Upload wrapper “package” so you can download & re-upload to repo
       - name: Upload Gradle Wrapper Files
         uses: actions/upload-artifact@v4
         with:
