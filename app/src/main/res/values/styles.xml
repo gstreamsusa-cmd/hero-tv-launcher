@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.HeroTVLauncher" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- No UI, splash-only launcher -->
+    <style name="Theme.HeroTVLauncher" parent="android:Theme.NoTitleBar.Fullscreen">
+        <!-- Splash-only launcher, no UI -->
     </style>
 
 </resources>
