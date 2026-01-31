@@ -28,8 +28,11 @@ jobs:
 
       # 1) Generate Gradle wrapper files inside your repo
       - name: Generate Gradle Wrapper
-        run: |
-          gradle wrapper --gradle-version 8.2.1
+  run: |
+    pwd
+    ls -la
+    gradle -v
+    gradle wrapper --gradle-version 8.2.1 --no-daemon
 
       - name: Make gradlew executable
         run: chmod +x gradlew
