@@ -1,14 +1,16 @@
-name: Build HERO TV Launcher APK
+name: Build APK (No Gradle Wrapper)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -17,177 +19,15 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # Uses a fixed Gradle version WITHOUT requiring gradlew in the repo
+      - name: Set up Gradle (no wrapper)
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: "8.2"
 
-      - name: Generate Android project (launcher)
-        shell: bash
-        run: |
-          set -e
-
-          APP_ID="com.gstreams.herotvlauncher"
-          APP_NAME="HERO TV Launcher"
-
-          mkdir -p app/src/main/java/com/gstreams/herotvlauncher
-          mkdir -p app/src/main/res/drawable
-          mkdir -p app/src/main/res/layout
-          mkdir -p app/src/main/res/values
-
-          # Copy your splash image into drawable
-          cp -f splash.jpg app/src/main/res/drawable/splash.jpg
-
-          # settings.gradle
-          cat > settings.gradle <<'EOF'
-          pluginManagement {
-              repositories {
-                  google()
-                  mavenCentral()
-                  gradlePluginPortal()
-              }
-          }
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
-          rootProject.name = "hero-tv-launcher"
-          include(":app")
-          EOF
-
-          }
-
-          android {
-              namespace "$APP_ID"
-              compileSdk 34
-
-              defaultConfig {
-                  applicationId "$APP_ID"
-                  minSdk 21
-                  targetSdk 34
-                  versionCode 1
-                  versionName "1.0"
-              }
-
-              buildTypes {
-                  release {
-                      minifyEnabled false
-                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-                  }
-              }
-
-              compileOptions {
-                  sourceCompatibility JavaVersion.VERSION_17
-                  targetCompatibility JavaVersion.VERSION_17
-              }
-              kotlinOptions {
-                  jvmTarget = "17"
-              }
-          }
-
-          dependencies {
-              implementation 'androidx.core:core-ktx:1.12.0'
-              implementation 'androidx.appcompat:appcompat:1.6.1'
-          }
-          EOF
-
-          # proguard (empty)
-          cat > app/proguard-rules.pro <<'EOF'
-          EOF
-
-          # AndroidManifest.xml (Leanback launcher + no permissions needed)
-          mkdir -p app/src/main
-          cat > app/src/main/AndroidManifest.xml <<'EOF'
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-              <application
-                  android:label="HERO TV Launcher"
-                  android:theme="@style/Theme.AppCompat.NoActionBar">
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true">
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.LAUNCHER" />
-                          <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-                      </intent-filter>
-                  </activity>
-              </application>
-
-          </manifest>
-          EOF
-
-          # layout (full-screen ImageView)
-          cat > app/src/main/res/layout/activity_main.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
-
-              <ImageView
-                  android:id="@+id/splashImage"
-                  android:layout_width="match_parent"
-                  android:layout_height="match_parent"
-                  android:scaleType="centerCrop"
-                  android:src="@drawable/splash" />
-          </FrameLayout>
-          EOF
-
-          # MainActivity.kt: show splash 3.5s then launch TiviMate
-          cat > app/src/main/java/com/gstreams/herotvlauncher/MainActivity.kt <<'EOF'
-          package com.gstreams.herotvlauncher
-
-          import android.content.Intent
-          import android.net.Uri
-          import android.os.Bundle
-          import android.os.Handler
-          import android.os.Looper
-          import android.widget.Toast
-          import androidx.appcompat.app.AppCompatActivity
-
-          class MainActivity : AppCompatActivity() {
-
-              override fun onCreate(savedInstanceState: Bundle?) {
-                  super.onCreate(savedInstanceState)
-                  setContentView(R.layout.activity_main)
-
-                  Handler(Looper.getMainLooper()).postDelayed({
-                      launchTiviMate()
-                  }, 3500)
-              }
-
-              private fun launchTiviMate() {
-                  // Common TiviMate package name:
-                  val candidates = listOf(
-                      "ar.tvplayer.tv"
-                  )
-
-                  val pm = packageManager
-                  var intent: Intent? = null
-                  for (pkg in candidates) {
-                      intent = pm.getLaunchIntentForPackage(pkg)
-                      if (intent != null) break
-                  }
-
-                  if (intent != null) {
-                      intent!!.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                      startActivity(intent)
-                      finish()
-                  } else {
-                      Toast.makeText(this, "TiviMate not found. Install it first.", Toast.LENGTH_LONG).show()
-
-                      // Optional: open a search page if missing
-                      val url = "https://www.amazon.com/s?k=tivimate" // Fire TV browser-friendly
-                      startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                  }
-              }
-          }
-          EOF
-
-          # Gradle wrapper so ./gradlew works
-          gradle wrapper --gradle-version 
-        
+      # Build the debug APK (most reliable without signing config)
+      - name: Build Debug APK
+        run: gradle :app:assembleDebug --no-daemon
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
