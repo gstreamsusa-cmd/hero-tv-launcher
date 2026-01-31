@@ -1,25 +1,16 @@
-- name: Nuke Gradle cache
-  run: |
-    rm -rf ~/.gradle
-    rm -rf .gradle
-
-- name: Show all AndroidManifest files
-  run: |
-    find . -name AndroidManifest.xml
-
-name: Build APK (Debug)
+name: Build Debug APK
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -28,26 +19,16 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Gradle (no wrapper)
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.2
 
-      - name: Clean
-        run: gradle clean
-
-      - name: Manifest merge (debug)
-        run: gradle :app:processDebugMainManifest --info --stacktrace
-
       - name: Build Debug APK
-        run: gradle assembleDebug
+        run: gradle :app:assembleDebug
 
-      - name: Upload manifest merge outputs
-        if: always()
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: manifest-merge
-          path: |
-            app/build/intermediates/merged_manifests/**/AndroidManifest.xml
-            app/build/intermediates/merged_manifests/**/manifest-merger-report.txt
-            app/build/intermediates/manifest_merge_blame_file/**/*
+          name: hero-tv-launcher-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
